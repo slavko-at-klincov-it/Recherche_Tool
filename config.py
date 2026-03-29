@@ -115,5 +115,5 @@ LOG_FILE = os.path.join(BASE_DIR, "recherche.log")
 
 # --- HTTP ---
 
-REQUEST_TIMEOUT = 15  # Sekunden
+REQUEST_TIMEOUT = 30  # Sekunden (ArXiv braucht oft laenger)
 USER_AGENT = "Recherche_Tool/1.0 (github.com/slavko-at-klincov-it/Recherche_Tool)"

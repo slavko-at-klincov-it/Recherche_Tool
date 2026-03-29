@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemerkte Artikel - Recherche Tool</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Recherche Tool</h1>
+            <nav>
+                <a href="/">Reports</a>
+                <a href="/starred" class="active">Gemerkt</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="content full-width">
+            <h2>&#9733; Gemerkte Artikel ({{ bookmarks.starred | length }})</h2>
+
+            {% if bookmarks.starred %}
+                {% for item in bookmarks.starred | reverse %}
+                <article class="card">
+                    <div class="card-header">
+                        <a href="{{ item.url }}" target="_blank" class="card-title">
+                            {{ item.title }}
+                        </a>
+                        <span class="card-date">{{ item.date[:10] }}</span>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Noch keine Artikel gemerkt. Klicke auf &#9733; bei einem Artikel.</p>
+            {% endif %}
+
+            <h2 style="margin-top: 2rem;">&#10003; Gelesen ({{ bookmarks.read | length }})</h2>
+            {% if bookmarks.read %}
+                {% for item in bookmarks.read | reverse %}
+                <article class="card read">
+                    <div class="card-header">
+                        <a href="{{ item.url }}" target="_blank" class="card-title">
+                            {{ item.title }}
+                        </a>
+                        <span class="card-date">{{ item.date[:10] }}</span>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Noch keine Artikel als gelesen markiert.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

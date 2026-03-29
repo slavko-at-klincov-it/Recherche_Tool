@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche Tool</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Recherche Tool</h1>
+            <nav>
+                <a href="/" class="active">Reports</a>
+                <a href="/starred">Gemerkt</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3>Reports</h3>
+                <ul class="date-list">
+                    {% for date in dates %}
+                    <li>
+                        <a href="/?date={{ date }}" class="{% if date == selected %}active{% endif %}">
+                            {{ date }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% if report %}
+            <div class="sidebar-section">
+                <h3>Themen</h3>
+                <ul class="topic-filter">
+                    <li>
+                        <a href="/?date={{ selected }}&topic=all"
+                           class="{% if topic_filter == 'all' %}active{% endif %}">
+                            Alle
+                        </a>
+                    </li>
+                    {% for topic_name, topic_data in report.topics.items() %}
+                    <li>
+                        <a href="/?date={{ selected }}&topic={{ topic_name | urlencode }}"
+                           class="{% if topic_filter == topic_name %}active{% endif %}">
+                            {{ topic_data.emoji }} {{ topic_name }}
+                            <span class="badge">{{ topic_data.count }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="sidebar-section stats">
+                <h3>Statistik</h3>
+                <p>{{ report.collected_line or report.stats_line }}</p>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- Content -->
+        <section class="content">
+            {% if report %}
+                {% for topic_name, topic_data in report.topics.items() %}
+                    {% if topic_filter == 'all' or topic_filter == topic_name %}
+                    <div class="topic-section">
+                        <h2>{{ topic_data.emoji }} {{ topic_name }}</h2>
+
+                        {% if topic_data.articles %}
+                            {% for article in topic_data.articles %}
+                            <article class="card {% if article.id | string in bookmarks.read | map(attribute='id') | list %}read{% endif %}"
+                                     data-id="{{ article.id }}">
+                                <div class="card-header">
+                                    <a href="{{ article.url }}" target="_blank" class="card-title">
+                                        {{ article.title }}
+                                    </a>
+                                    <div class="card-actions">
+                                        <button class="btn-star {% if article.id | string in bookmarks.starred | map(attribute='id') | list %}active{% endif %}"
+                                                onclick="toggleBookmark('star', '{{ article.id }}', '{{ article.url }}', '{{ article.title | e }}')"
+                                                title="Merken">
+                                            &#9733;
+                                        </button>
+                                        <button class="btn-read"
+                                                onclick="toggleBookmark('read', '{{ article.id }}', '{{ article.url }}', '{{ article.title | e }}')"
+                                                title="Als gelesen markieren">
+                                            &#10003;
+                                        </button>
+                                    </div>
+                                </div>
+                                {% if article.summary %}
+                                <p class="card-summary">{{ article.summary }}</p>
+                                {% endif %}
+                                {% if article.meta %}
+                                <p class="card-meta">{{ article.meta }}</p>
+                                {% endif %}
+                            </article>
+                            {% endfor %}
+                        {% else %}
+                            <p class="empty">Keine Artikel in dieser Kategorie.</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <h2>Kein Report vorhanden</h2>
+                    <p>Starte eine Recherche mit: <code>python3 recherche.py --now</code></p>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        async function toggleBookmark(action, id, url, title) {
+            const resp = await fetch('/api/bookmark', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action, id, url, title})
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                const card = document.querySelector(`[data-id="${id}"]`);
+                if (action === 'star') {
+                    card.querySelector('.btn-star').classList.toggle('active', data.state);
+                } else {
+                    card.classList.toggle('read', data.state);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
